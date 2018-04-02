@@ -1,0 +1,8 @@
+- download sqlite-netFx-full-source-<version no>.zip. from https://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki
+- unzip file : sqlite-netFx-source-1.0.107.0.zip --> <source root>
+- Enter in terminal : 
+	cd <source root>/Setup
+	chmod +x compile-interop-assembly-release.sh
+	./compile-interop-assembly-release.sh
+	chmod -x <source root>/bin/2013/Release/bin/libSQLite.Interop.dylib
+- Copy libSQLite.Interop.dylib the directory where your Mono/.NET application’s binaries reside (not the x64 or x86 subdirectories containing SQLite.Interop.dll)

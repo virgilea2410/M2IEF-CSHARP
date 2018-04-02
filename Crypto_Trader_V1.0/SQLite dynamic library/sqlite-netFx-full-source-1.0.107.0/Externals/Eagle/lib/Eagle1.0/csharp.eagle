@@ -1,0 +1,249 @@
+###############################################################################
+#
+# csharp.eagle --
+#
+# Extensible Adaptable Generalized Logic Engine (Eagle)
+# Eagle CSharp Package File
+#
+# Copyright (c) 2007-2012 by Joe Mistachkin.  All rights reserved.
+#
+# See the file "license.terms" for information on usage and redistribution of
+# this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# RCS: @(#) $Id: $
+#
+###############################################################################
+
+#
+# NOTE: Use our own namespace here because even though we do not directly
+#       support namespaces ourselves, we do not want to pollute the global
+#       namespace if this script actually ends up being evaluated in Tcl.
+#
+namespace eval ::Eagle {
+  #
+  # NOTE: This procedure is used to dynamically compile some C# code from
+  #       within a script.  While this procedure was originally designed
+  #       to be used by the test suite, it can be quite useful in non-test
+  #       scripts as well.
+  #
+  proc compileCSharp {
+          string memory symbols strict resultsVarName errorsVarName args } {
+    #
+    # NOTE: The [object] command is required by this procedure.  If it
+    #       is not available, bail out now.
+    #
+    if {[llength [info commands object]] == 0} then {
+      #
+      # NOTE: We cannot even attempt to compile anything, fail.
+      #
+      set code Error
+
+      #
+      # NOTE: Prepare to transfer error messages to the caller.
+      #
+      if {[string length $errorsVarName] > 0} then {
+        upvar 1 $errorsVarName local_errors
+      }
+
+      #
+      # NOTE: Append to the list of errors.
+      #
+      lappend local_errors "cannot compile, missing \"object\" command"
+
+      #
+      # NOTE: Return the overall result to the caller.
+      #
+      return $code
+    }
+
+    #
+    # NOTE: Create the C# code provider object (i.e. the compiler).
+    #
+    set provider [object create -alias Microsoft.CSharp.CSharpCodeProvider]
+
+    #
+    # NOTE: Create the object that provides various parameters to the C#
+    #       code provider (i.e. the compiler options).
+    #
+    set parameters [object create -alias \
+        System.CodeDom.Compiler.CompilerParameters]
+
+    #
+    # NOTE: Do we not want to persist the generated assembly to disk?
+    #
+    if {$memory} then {
+      $parameters GenerateInMemory true
+    }
+
+    #
+    # NOTE: Do we want symbols to be generated for the generated assembly?
+    #
+    if {$symbols} then {
+      $parameters IncludeDebugInformation true
+    }
+
+    #
+    # NOTE: Make sure that the "standard" preprocessor defines match those
+    #       for the platform (i.e. the ones used to compile the Eagle core
+    #       library assembly).
+    #
+    set platformOptions [expr { \
+        [info exists ::eagle_platform(compileOptions)] ? \
+        $::eagle_platform(compileOptions) : [list]}]
+
+    #
+    # NOTE: Permit extra C# compiler options to be passed via the global
+    #       array element "csharpOptions", if it exists.
+    #
+    set csharpOptions [expr { \
+        [info exists ::eagle_platform(csharpOptions)] ? \
+        $::eagle_platform(csharpOptions) : [list]}]
+
+    if {[llength $platformOptions] > 0 || \
+        [llength $csharpOptions] > 0} then {
+      #
+      # NOTE: Grab the existing compiler options, if any.
+      #
+      set compilerOptions [$parameters CompilerOptions]
+
+      if {"DEBUG" in $platformOptions} then {
+        if {[string length $compilerOptions] > 0} then {
+          append compilerOptions " "
+        }
+
+        append compilerOptions /define:DEBUG
+      }
+
+      if {"TRACE" in $platformOptions} then {
+        if {[string length $compilerOptions] > 0} then {
+          append compilerOptions " "
+        }
+
+        append compilerOptions /define:TRACE
+      }
+
+      #
+      # NOTE: Append the configured extra C# compiler options configured
+      #       via the global array element "csharpOptions", if any.
+      #
+      foreach csharpOption $csharpOptions {
+        if {[string length $compilerOptions] > 0} then {
+          append compilerOptions " "
+        }
+
+        append compilerOptions $csharpOption
+      }
+
+      #
+      # NOTE: Reset the compiler options to the pre-existing ones plus the
+      #       extra defines we may have added (above).
+      #
+      $parameters CompilerOptions $compilerOptions
+    }
+
+    #
+    # NOTE: Process any extra compiler settings the caller may have
+    #       provided.
+    #
+    foreach {name value} $args {
+      $parameters -nocase $name $value
+    }
+
+    #
+    # NOTE: Prepare to transfer the object reference to the caller.  We
+    #       must use upvar here because otherwise the object is lost when
+    #       the procedure call frame is cleaned up.
+    #
+    if {[string length $resultsVarName] > 0} then {
+      upvar 1 $resultsVarName results
+    }
+
+    #
+    # NOTE: Attempt to compile the specified string as C# and capture the
+    #       results into the variable provided by the caller.
+    #
+    set results [$provider -alias CompileAssemblyFromSource $parameters \
+        $string]
+
+    #
+    # NOTE: We no longer need the C# code provider object (i.e. the
+    #       compiler); therefore, dispose it now.
+    #
+    unset provider; # dispose
+
+    #
+    # NOTE: Fetch the collection of compiler errors (which may be empty).
+    #
+    set errors [$results -alias Errors]
+
+    #
+    # NOTE: It is assumed that no assembly was generated if there were
+    #       any compiler errors.  Ignore all compiler warnings unless
+    #       we are in strict mode.
+    #
+    if {[$errors HasErrors] || ($strict && [$errors HasWarnings])} then {
+      #
+      # NOTE: Compilation of the assembly failed.
+      #
+      set code Error
+
+      #
+      # NOTE: Prepare to transfer error messages to the caller.
+      #
+      if {[string length $errorsVarName] > 0} then {
+        upvar 1 $errorsVarName local_errors
+      }
+
+      #
+      # NOTE: How many compile errors?
+      #
+      set count [$errors Count]
+
+      #
+      # NOTE: Grab each error object and append the string itself to
+      #       the overall list of errors.
+      #
+      for {set index 0} {$index < $count} {incr index} {
+        #
+        # NOTE: Get the compiler error object at this index.
+        #
+        set error [$errors -alias Item $index]
+
+        #
+        # NOTE: Convert it to a string and append it to the list of
+        #       errors.
+        #
+        lappend local_errors [$error ToString]
+
+        #
+        # NOTE: Since the error itself is actually an object, we must
+        #       dispose it.
+        #
+        unset error; # dispose
+      }
+    } else {
+      #
+      # NOTE: Compilation of the assembly succeeded.
+      #
+      set code Ok
+    }
+
+    #
+    # NOTE: We no longer need the collection of compiler errors;
+    #       therefore, dispose it now.
+    #
+    unset errors; # dispose
+
+    #
+    # NOTE: Return the overall result to the caller.
+    #
+    return $code
+  }
+
+  #
+  # NOTE: Provide the Eagle "C#" package to the interpreter.
+  #
+  package provide Eagle.CSharp \
+    [expr {[isEagle] ? [info engine PatchLevel] : "1.0"}]
+}
+

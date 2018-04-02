@@ -1,0 +1,472 @@
+###############################################################################
+#
+# file3.eagle --
+#
+# Extensible Adaptable Generalized Logic Engine (Eagle)
+# Eagle File 3 Package File
+#
+# Copyright (c) 2007-2012 by Joe Mistachkin.  All rights reserved.
+#
+# See the file "license.terms" for information on usage and redistribution of
+# this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# RCS: @(#) $Id: $
+#
+###############################################################################
+
+#
+# NOTE: Use our own namespace here because even though we do not directly
+#       support namespaces ourselves, we do not want to pollute the global
+#       namespace if this script actually ends up being evaluated in Tcl.
+#
+namespace eval ::Eagle {
+  #
+  # NOTE: This procedure uses the type of the specified path to figure out
+  #       the (possibly normalized) path to add to the finder results.
+  #
+  proc getDirResultPath { pattern path } {
+    #
+    # NOTE: This should work properly in both Tcl and Eagle.
+    #       Is the result path itself already absolute?
+    #
+    if {[file pathtype $path] eq "absolute"} then {
+      #
+      # NOTE: Ok, the result path is already absolute.
+      #       Normalize and return it.
+      #
+      return [file normalize $path]
+    } elseif {[file pathtype $pattern] eq "absolute"} then {
+      #
+      # NOTE: The pattern refers to an absolute path.  Strip
+      #       the final part of the pattern and join it with
+      #       the result path (which we already know is not
+      #       absolute).
+      #
+      return [file normalize [file join [file dirname $pattern] $path]]
+    } else {
+      #
+      # NOTE: Neither the result path nor the input pattern
+      #       contain an absolute path; therefore, use the
+      #       current directory to hang the result path on.
+      #
+      return [file normalize [file join [pwd] $path]]
+    }
+  }
+
+  #
+  # NOTE: This procedure returns a list of directories matching the pattern
+  #       specified.  It does not recurse into sub-directories.
+  #
+  proc findDirectories { pattern } {
+    if {[isEagle]} then {
+      #
+      # NOTE: Block non-Windows platforms since this is Windows specific.
+      #
+      if {![isWindows]} then {
+        error "not supported on this operating system"
+      }
+
+      #
+      # NOTE: This should work properly in Eagle only.
+      #
+      set dir ""; set result [list]
+
+      #
+      # HACK: Optimize the variable access in this procedure to be
+      #       as fast as possible.
+      #
+      makeVariableFast dir true; makeVariableFast result true
+
+      #
+      # NOTE: We will need to grab the ComSpec environment variable.
+      #
+      global env
+
+      foreach dir [split [exec -unicode $env(ComSpec) /u /c dir \
+          /ad /b [appendArgs \" [file nativename $pattern] \"]] \n] {
+        set dir [string trim $dir]
+
+        if {[string length $dir] > 0} then {
+          set dir [getDirResultPath $pattern $dir]
+
+          if {[lsearch -variable -exact -nocase result $dir] == -1} then {
+            lappend result $dir
+          }
+        }
+      }
+
+      foreach dir [split [exec -unicode $env(ComSpec) /u /c dir \
+          /ahd /b [appendArgs \" [file nativename $pattern] \"]] \n] {
+        set dir [string trim $dir]
+
+        if {[string length $dir] > 0} then {
+          set dir [getDirResultPath $pattern $dir]
+
+          if {[lsearch -variable -exact -nocase result $dir] == -1} then {
+            lappend result $dir
+          }
+        }
+      }
+
+      return $result
+    } else {
+      #
+      # NOTE: This should work properly in Tcl only.
+      #
+      eval lappend result [glob -nocomplain -types {d} \
+          [file normalize $pattern]]
+
+      eval lappend result [glob -nocomplain -types {d hidden} \
+          [file normalize $pattern]]
+
+      return $result
+    }
+  }
+
+  #
+  # NOTE: This procedure returns a list of directories matching the pattern
+  #       specified.  It recurses into sub-directories.
+  #
+  proc findDirectoriesRecursive { pattern } {
+    if {[isEagle]} then {
+      #
+      # NOTE: Block non-Windows platforms since this is Windows specific.
+      #
+      if {![isWindows]} then {
+        error "not supported on this operating system"
+      }
+
+      #
+      # NOTE: This should work properly in Eagle only.
+      #
+      set dir ""; set result [list]
+
+      #
+      # HACK: Optimize the variable access in this procedure to be
+      #       as fast as possible.
+      #
+      makeVariableFast dir true; makeVariableFast result true
+
+      #
+      # NOTE: We will need to grab the ComSpec environment variable.
+      #
+      global env
+
+      foreach dir [split [exec -unicode $env(ComSpec) /u /c dir \
+          /ad /s /b [appendArgs \" [file nativename $pattern] \"]] \n] {
+        set dir [string trim $dir]
+
+        if {[string length $dir] > 0} then {
+          set dir [getDirResultPath $pattern $dir]
+
+          if {[lsearch -variable -exact -nocase result $dir] == -1} then {
+            lappend result $dir
+          }
+        }
+      }
+
+      foreach dir [split [exec -unicode $env(ComSpec) /u /c dir \
+          /ahd /s /b [appendArgs \" [file nativename $pattern] \"]] \n] {
+        set dir [string trim $dir]
+
+        if {[string length $dir] > 0} then {
+          set dir [getDirResultPath $pattern $dir]
+
+          if {[lsearch -variable -exact -nocase result $dir] == -1} then {
+            lappend result $dir
+          }
+        }
+      }
+
+      return $result
+    } else {
+      #
+      # NOTE: Block non-Windows platforms since this is Windows specific.
+      #
+      if {![isWindows]} then {
+        error "not supported on this operating system"
+      }
+
+      #
+      # NOTE: This should work properly in Tcl only.
+      #
+      set result [list]
+
+      #
+      # NOTE: We will need to grab the ComSpec environment variable.
+      #
+      global env
+
+      #
+      # NOTE: We will also need to check the Tcl version.
+      #
+      global tcl_version
+
+      catch {
+        foreach dir [split [exec $env(ComSpec) /c dir /ad /s /b \
+            [file nativename $pattern]] \n] {
+          set dir [string trim $dir]
+
+          if {[string length $dir] > 0} then {
+            set dir [getDirResultPath $pattern $dir]
+
+            #
+            # HACK: The -nocase option to [lsearch] is only available
+            #       starting with Tcl 8.5.
+            #
+            if {$tcl_version >= 8.5} then {
+              if {[lsearch -exact -nocase $result $dir] == -1} then {
+                lappend result $dir
+              }
+            } else {
+              if {[lsearch -exact [string tolower $result] \
+                  [string tolower $dir]] == -1} then {
+                lappend result $dir
+              }
+            }
+          }
+        }
+      }
+
+      catch {
+        foreach dir [split [exec $env(ComSpec) /c dir /ahd /s /b \
+            [file nativename $pattern]] \n] {
+          set dir [string trim $dir]
+
+          if {[string length $dir] > 0} then {
+            set dir [getDirResultPath $pattern $dir]
+
+            #
+            # HACK: The -nocase option to [lsearch] is only available
+            #       starting with Tcl 8.5.
+            #
+            if {$tcl_version >= 8.5} then {
+              if {[lsearch -exact -nocase $result $dir] == -1} then {
+                lappend result $dir
+              }
+            } else {
+              if {[lsearch -exact [string tolower $result] \
+                  [string tolower $dir]] == -1} then {
+                lappend result $dir
+              }
+            }
+          }
+        }
+      }
+
+      return $result
+    }
+  }
+
+  #
+  # NOTE: This procedure returns a list of files matching the pattern
+  #       specified.  It does not recurse into sub-directories.
+  #
+  proc findFiles { pattern } {
+    if {[isEagle]} then {
+      #
+      # NOTE: Block non-Windows platforms since this is Windows specific.
+      #
+      if {![isWindows]} then {
+        error "not supported on this operating system"
+      }
+
+      #
+      # NOTE: This should work properly in Eagle only.
+      #
+      set fileName ""; set result [list]
+
+      #
+      # HACK: Optimize the variable access in this procedure to be
+      #       as fast as possible.
+      #
+      makeVariableFast fileName true; makeVariableFast result true
+
+      #
+      # NOTE: We will need to grab the ComSpec environment variable.
+      #
+      global env
+
+      foreach fileName [split [exec -unicode $env(ComSpec) /u /c dir \
+          /a-d /b [appendArgs \" [file nativename $pattern] \"]] \n] {
+        set fileName [string trim $fileName]
+
+        if {[string length $fileName] > 0} then {
+          set fileName [getDirResultPath $pattern $fileName]
+
+          if {[lsearch -variable -exact -nocase result $fileName] == -1} then {
+            lappend result $fileName
+          }
+        }
+      }
+
+      foreach fileName [split [exec -unicode $env(ComSpec) /u /c dir \
+          /ah-d /b [appendArgs \" [file nativename $pattern] \"]] \n] {
+        set fileName [string trim $fileName]
+
+        if {[string length $fileName] > 0} then {
+          set fileName [getDirResultPath $pattern $fileName]
+
+          if {[lsearch -variable -exact -nocase result $fileName] == -1} then {
+            lappend result $fileName
+          }
+        }
+      }
+
+      return $result
+    } else {
+      #
+      # NOTE: This should work properly in Tcl only.
+      #
+      eval lappend result [glob -nocomplain -types {f} \
+          [file normalize $pattern]]
+
+      eval lappend result [glob -nocomplain -types {f hidden} \
+          [file normalize $pattern]]
+
+      return $result
+    }
+  }
+
+  #
+  # NOTE: This procedure returns a list of files matching the pattern
+  #       specified.  It recurses into sub-directories.
+  #
+  proc findFilesRecursive { pattern } {
+    if {[isEagle]} then {
+      #
+      # NOTE: Block non-Windows platforms since this is Windows specific.
+      #
+      if {![isWindows]} then {
+        error "not supported on this operating system"
+      }
+
+      #
+      # NOTE: This should work properly in Eagle only.
+      #
+      set fileName ""; set result [list]
+
+      #
+      # HACK: Optimize the variable access in this procedure to be
+      #       as fast as possible.
+      #
+      makeVariableFast fileName true; makeVariableFast result true
+
+      #
+      # NOTE: We will need to grab the ComSpec environment variable.
+      #
+      global env
+
+      foreach fileName [split [exec -unicode $env(ComSpec) /u /c dir \
+          /a-d /s /b [appendArgs \" [file nativename $pattern] \"]] \n] {
+        set fileName [string trim $fileName]
+
+        if {[string length $fileName] > 0} then {
+          set fileName [getDirResultPath $pattern $fileName]
+
+          if {[lsearch -variable -exact -nocase result $fileName] == -1} then {
+            lappend result $fileName
+          }
+        }
+      }
+
+      foreach fileName [split [exec -unicode $env(ComSpec) /u /c dir \
+          /ah-d /s /b [appendArgs \" [file nativename $pattern] \"]] \n] {
+        set fileName [string trim $fileName]
+
+        if {[string length $fileName] > 0} then {
+          set fileName [getDirResultPath $pattern $fileName]
+
+          if {[lsearch -variable -exact -nocase result $fileName] == -1} then {
+            lappend result $fileName
+          }
+        }
+      }
+
+      return $result
+    } else {
+      #
+      # NOTE: Block non-Windows platforms since this is Windows specific.
+      #
+      if {![isWindows]} then {
+        error "not supported on this operating system"
+      }
+
+      #
+      # NOTE: This should work properly in Tcl only.
+      #
+      set result [list]
+
+      #
+      # NOTE: We will need to grab the ComSpec environment variable.
+      #
+      global env
+
+      #
+      # NOTE: We will also need to check the Tcl version.
+      #
+      global tcl_version
+
+      catch {
+        foreach fileName [split [exec $env(ComSpec) /c dir /a-d /s /b \
+            [file nativename $pattern]] \n] {
+          set fileName [string trim $fileName]
+
+          if {[string length $fileName] > 0} then {
+            set fileName [getDirResultPath $pattern $fileName]
+
+            #
+            # HACK: The -nocase option to [lsearch] is only available
+            #       starting with Tcl 8.5.
+            #
+            if {$tcl_version >= 8.5} then {
+              if {[lsearch -exact -nocase $result $fileName] == -1} then {
+                lappend result $fileName
+              }
+            } else {
+              if {[lsearch -exact [string tolower $result] \
+                  [string tolower $fileName]] == -1} then {
+                lappend result $fileName
+              }
+            }
+          }
+        }
+      }
+
+      catch {
+        foreach fileName [split [exec $env(ComSpec) /c dir /ah-d /s /b \
+            [file nativename $pattern]] \n] {
+          set fileName [string trim $fileName]
+
+          if {[string length $fileName] > 0} then {
+            set fileName [getDirResultPath $pattern $fileName]
+
+            #
+            # HACK: The -nocase option to [lsearch] is only available
+            #       starting with Tcl 8.5.
+            #
+            if {$tcl_version >= 8.5} then {
+              if {[lsearch -exact -nocase $result $fileName] == -1} then {
+                lappend result $fileName
+              }
+            } else {
+              if {[lsearch -exact [string tolower $result] \
+                  [string tolower $fileName]] == -1} then {
+                lappend result $fileName
+              }
+            }
+          }
+        }
+      }
+
+      return $result
+    }
+  }
+
+  #
+  # NOTE: Provide the Eagle "file finder" package to the interpreter.
+  #
+  package provide Eagle.File.Finder \
+    [expr {[isEagle] ? [info engine PatchLevel] : "1.0"}]
+}
+

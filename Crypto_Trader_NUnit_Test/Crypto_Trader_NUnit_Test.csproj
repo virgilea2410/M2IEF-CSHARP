@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\SQLite.Native.3.12.3\build\net45\SQLite.Native.props" Condition="Exists('..\packages\SQLite.Native.3.12.3\build\net45\SQLite.Native.props')" />
+  <Import Project="..\packages\FSharp.Compiler.Tools.10.0.1\build\FSharp.Compiler.Tools.props" Condition="Exists('..\packages\FSharp.Compiler.Tools.10.0.1\build\FSharp.Compiler.Tools.props')" />
+  <Import Project="..\packages\NUnit3TestAdapter.3.10.0\build\net35\NUnit3TestAdapter.props" Condition="Exists('..\packages\NUnit3TestAdapter.3.10.0\build\net35\NUnit3TestAdapter.props')" />
+  <Import Project="..\packages\NUnit.3.10.1\build\NUnit.props" Condition="Exists('..\packages\NUnit.3.10.1\build\NUnit.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{CDFA2671-0C15-4520-B609-16209595F9F1}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Crypto_Trader_NUnit_Test</RootNamespace>
+    <AssemblyName>Crypto_Trader_NUnit_Test</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+    
+    <!-- Added by Virgile Amato -->
+  <PropertyGroup>
+      <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+      <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+  </PropertyGroup>
+  <!-- end added by Virgile Amato -->
+    
+  <ItemGroup>
+    <Reference Include="System.Security.Cryptography.Encoding">
+      <HintPath>..\packages\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Primitives">
+      <HintPath>..\packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="System.Net.Sockets">
+      <HintPath>..\packages\System.Net.Sockets.4.3.0\lib\net46\System.Net.Sockets.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.Reactive.Linq" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.IO.Compression">
+      <HintPath>..\packages\System.IO.Compression.4.3.0\lib\net46\System.IO.Compression.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.Compression.ZipFile">
+      <HintPath>..\packages\System.IO.Compression.ZipFile.4.3.0\lib\net46\System.IO.Compression.ZipFile.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.IO.FileSystem.Primitives">
+      <HintPath>..\packages\System.IO.FileSystem.Primitives.4.3.0\lib\net46\System.IO.FileSystem.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.FileSystem">
+      <HintPath>..\packages\System.IO.FileSystem.4.3.0\lib\net46\System.IO.FileSystem.dll</HintPath>
+    </Reference>
+    <Reference Include="pango-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="gtk-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="gdk-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="glib-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="glade-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="System.ValueTuple">
+      <HintPath>..\packages\System.ValueTuple.4.4.0\lib\net461\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.3.10.1\lib\net45\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Algorithms">
+      <HintPath>..\packages\System.Security.Cryptography.Algorithms.4.3.1\lib\net461\System.Security.Cryptography.Algorithms.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.X509Certificates">
+      <HintPath>..\packages\System.Security.Cryptography.X509Certificates.4.3.2\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
+    </Reference>
+    <Reference Include="BittrexSharp">
+      <HintPath>..\..\Crypto_API\BittrexAPI\BittrexSharp.0.1.1\lib\netstandard1.4\BittrexSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="websocket-sharp">
+      <HintPath>..\..\Crypto_API\BinanceAPI\WebSocketSharp-NonPreRelease.1.0.0\lib\net35\websocket-sharp.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="Microsoft.Build" />
+    <Reference Include="System.Data" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Win32.Primitives">
+      <HintPath>..\packages\Microsoft.Win32.Primitives.4.3.0\lib\net46\Microsoft.Win32.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Diagnostics.DiagnosticSource">
+      <HintPath>..\packages\System.Diagnostics.DiagnosticSource.4.4.1\lib\net46\System.Diagnostics.DiagnosticSource.dll</HintPath>
+    </Reference>
+    <Reference Include="RestSharp">
+      <HintPath>..\packages\RestSharp.106.2.1\lib\net452\RestSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="CuttingEdge.Conditions">
+      <HintPath>..\packages\CuttingEdge.Conditions.1.2.0.0\lib\NET35\CuttingEdge.Conditions.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="FluentAssertions">
+      <HintPath>..\packages\FluentAssertions.5.2.0\lib\net45\FluentAssertions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="FSharp.Data">
+      <HintPath>..\packages\FSharp.Data.2.4.6\lib\net45\FSharp.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="MathNet.Numerics">
+      <HintPath>..\packages\MathNet.Numerics.4.4.0\lib\net461\MathNet.Numerics.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.AppContext">
+      <HintPath>..\packages\System.AppContext.4.3.0\lib\net46\System.AppContext.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Console">
+      <HintPath>..\packages\System.Console.4.3.0\lib\net46\System.Console.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SQLite.EF6">
+      <HintPath>..\packages\System.Data.SQLite.EF6.1.0.108.0\lib\net46\System.Data.SQLite.EF6.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SQLite.Linq">
+      <HintPath>..\packages\System.Data.SQLite.Linq.1.0.108.0\lib\net46\System.Data.SQLite.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SQLite.Mac">
+      <HintPath>..\packages\System.Data.SQLite.Mac.1.0.104.2\lib\net45\System.Data.SQLite.Mac.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Globalization.Calendars">
+      <HintPath>..\packages\System.Globalization.Calendars.4.3.0\lib\net46\System.Globalization.Calendars.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.XmlDocument">
+      <HintPath>..\packages\System.Xml.XmlDocument.4.3.0\lib\net46\System.Xml.XmlDocument.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net" />
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Net.Http">
+      <HintPath>..\packages\System.Net.Http.4.1.1\lib\net46\System.Net.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.CSharp">
+      <HintPath>..\packages\Mono.CSharp.4.0.0.143\lib\4.5\Mono.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="My_BittrexTest.cs" />
+    <Compile Include="My_BinanceTest.cs" />
+    <Compile Include="My_BitfinexTest.cs" />
+    <Compile Include="My_CoinbaseTest.cs" />
+    <Compile Include="My_CexIOTest.cs" />
+    <Compile Include="My_CryptoTraderTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Static\Charts\.DS_Store" />
+    <None Include="Static\Charts\BTC_EUR_108Days_25-02-2018__182908.png" />
+    <None Include="Static\Charts\BTC_EUR_110Days_25-02-2018__183701.png" />
+    <None Include="Static\Charts\BTC_EUR_117Days_25-02-2018__192148.png" />
+    <None Include="Static\Charts\BTC_EUR_123Days_25-02-2018__183258.png" />
+    <None Include="Static\Charts\BTC_EUR_126Days_25-02-2018__192651.png" />
+    <None Include="Static\Charts\BTC_EUR_181Days_25-02-2018__192541.png" />
+    <None Include="Static\Charts\BTC_EUR_199Days_25-02-2018__191819.png" />
+    <None Include="Static\Charts\BTC_EUR_199Days_25-02-2018__191929.png" />
+    <None Include="Static\Charts\BTC_EUR_384Days_25-02-2018__182054.png" />
+    <None Include="Static\Charts\BTC_EUR_41Days_25-02-2018__182615.png" />
+    <None Include="Static\Charts\BTC_EUR_80Days_25-02-2018__181357.jpg" />
+    <None Include="Static\Charts\BTC_EUR_82Days_25-02-2018__183410.png" />
+    <None Include="Static\Charts\BTC_EUR_84Days_25-02-2018__181508.jpg" />
+    <None Include="Static\Charts\BTC_EUR_89Days_25-02-2018__181724.jpg" />
+    <None Include="Static\Charts\BTC_USD_189Days_25-02-2018__193020.png" />
+    <None Include="Static\Charts\BTC_USD_400Days_25-02-2018__172714.jpg" />
+    <None Include="Static\Charts\BTC_USD_95Days_25-02-2018__183116.png" />
+    <None Include="Static\Charts\EOS_BTC_95Days_25-02-2018__183100.png" />
+    <None Include="Static\Charts\EOS_BTC_95Days_25-02-2018__183100_REIZED.png" />
+    <None Include="Static\Charts\ETH_EUR_121Days_25-02-2018__183516.png" />
+    <None Include="Static\Charts\ETH_EUR_86Days_25-02-2018__182332.png" />
+    <None Include="Static\Databases\.DS_Store" />
+    <None Include="Static\Databases\DataBase_BCH_USD_300_Days_18-02-2018__220921.sqlite" />
+    <None Include="Static\Databases\DataBase_BTC_CAD_400_Days_18-02-2018__221703.sqlite" />
+    <None Include="Static\Databases\DataBase_BTC_EOS_285_Days_23-02-2018__184925.sqlite" />
+    <None Include="Static\Databases\DataBase_BTC_ETH_123_Days_18-02-2018__231227.sqlite" />
+    <None Include="Static\Databases\DataBase_BTC_EUR_200_Days_18-02-2018__174930.sqlite" />
+    <None Include="Static\Databases\DataBase_BTC_EUR_200_Days_18-02-2018__175317.sqlite" />
+    <None Include="Static\Databases\DataBase_BTC_EUR_270_Days_18-02-2018__220119.sqlite" />
+    <None Include="Static\Databases\DataBase_BTC_EUR_394_Days_28-02-2018__111302.sqlite" />
+    <None Include="Static\Databases\DataBase_BTC_EUR_399_Days_23-02-2018__184122.sqlite" />
+    <None Include="Static\Databases\DataBase_BTC_EUR_600_Days_18-02-2018__175427.sqlite" />
+    <None Include="Static\Databases\DataBase_BTC_USD_2_Days_26-02-2018__202602.sqlite" />
+    <None Include="Static\Databases\DataBase_BTC_USD_300_Days_18-02-2018__220903.sqlite" />
+    <None Include="Static\Databases\DataBase_BTC_USD_4_Days_26-02-2018__201637.sqlite" />
+    <None Include="Static\Databases\DataBase_BTG_EUR_163_Days_18-02-2018__220837.sqlite" />
+    <None Include="Static\Databases\DataBase_ETC_EUR_163_Days_18-02-2018__220724.sqlite" />
+    <None Include="Static\Databases\DataBase_ETH_EUR_270_Days_18-02-2018__220309.sqlite" />
+    <None Include="Static\Databases\DataBase_ETH_EUR_388_Days_26-02-2018__202919.sqlite" />
+    <None Include="Static\Databases\DataBase_ETH_EUR_395_Days_26-02-2018__193421.sqlite" />
+    <None Include="Static\Databases\DataBase_ETH_EUR_396_Days_26-02-2018__201208.sqlite" />
+    <None Include="Static\Databases\DataBase_ETH_EUR_86_Days_25-02-2018__182314.sqlite" />
+    <None Include="Static\Databases\DataBase_ETH_USD_300_Days_18-02-2018__220912.sqlite" />
+    <None Include="Static\Databases\DataBase_LTC_USD_300_Days_18-02-2018__220926.sqlite" />
+    <None Include="Static\Databases\DataBase_TRX_EUR_391_Days_18-02-2018__223632.sqlite" />
+    <None Include="Static\Databases\DataBase_XLM_EUR_163_Days_18-02-2018__220846.sqlite" />
+    <None Include="Static\Databases\DataBase_XRP_ETH_396_Days_26-02-2018__201434.sqlite" />
+    <None Include="Static\Databases\DataBase_XRP_EUR_185_Days_18-02-2018__220500.sqlite" />
+    <None Include="Static\Databases\DataBase_XRP_USD_300_Days_18-02-2018__220917.sqlite" />
+    <None Include="Static\Databases\DataBase_ZEC_NEO_395_Days_26-02-2018__200335.sqlite" />
+    <None Include="Static\Fonts\ninja-garden\ninjagarden.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagarden.txt" />
+    <None Include="Static\Fonts\ninja-garden\ninjagarden3d.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagarden3dital.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardencond.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardencondital.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardenexpand.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardenexpandital.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardengrad.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardengradital.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardenhalf.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardenhalfital.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardenital.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardenlaser.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardenlaserital.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardenleft.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardenout.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardenoutital.ttf" />
+    <None Include="Static\Fonts\ninja-garden\ninjagardensemital.ttf" />
+    <None Include="Static\Images\Background.png" />
+    <None Include="Static\Images\CryptoTrader-BlockBrokers.png" />
+    <None Include="Static\Images\CryptoTrader-J&amp;N.png" />
+    <None Include="Static\Images\Crypto-Trader-Ninja-Garden3D.png" />
+    <None Include="Static\Images\Crypto-Trader-Ninja-Garden3D-340x87.png" />
+    <None Include="Static\Images\Crypto-Trader-Ninja-Garden3D-340x87-ALPHA.png" />
+    <None Include="Static\Images\Crypto-Trader-Ninja-Garden3D-Original-ALPHA.png" />
+    <None Include="Static\Images\CryptoTrader-Screwdriver.png" />
+    <None Include="Static\Images\CryptoTrader-Screwdriver-340x87.png" />
+    <None Include="Static\Images\CryptoTrader-SlopeOpera.png" />
+    <None Include="Static\Images\CryptoTrader-StarNursery.png" />
+    <None Include="Static\Images\CryptoTrader-StarNursery3D.png" />
+    <None Include="Static\Images\LoadWheel-0.png" />
+    <None Include="Static\Images\LoadWheel-1.png" />
+    <None Include="Static\Images\LoadWheel-LightBlue.png" />
+    <None Include="Static\Images\Logo1.png" />
+    <None Include="Static\Images\LogoResized.png" />
+    <None Include="Static\Images\MainLogo.png" />
+    <None Include="Static\Images\Screen Shot 2018-02-10 at 14.17.47.png" />
+    <None Include="Static\Images\Spinner.png" />
+    <None Include="Static\Images\Spinner.svg" />
+    <None Include="Static\Images\Spinner-105x105.png" />
+    <None Include="Static\Images\Spinner-120x120.png" />
+    <None Include="Crypto_Trader_NUnit_Test.csproj" />
+    <None Include="App.config" />
+    <None Include="libsqlite3.dylib" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Crypto_Trader_V1.0\Crypto_Trader_V1.0.csproj">
+      <Project>{9A7040B9-EF41-49E4-9E2D-C207D81CDBC9}</Project>
+      <Name>Crypto_Trader_V1.0</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Static\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+    
+  <!-- Added this afterbuild so that we can use mono System.Net.Http ddl,
+    and not the Microsoft one. Request like bittrex get_portfolio, etc, 
+    would'nt work if we don't do this -->
+  <Target Name="AfterBuild">  
+    <Delete Files="bin/$(Configuration)/System.Net.Http.dll" /> 
+  </Target>
+  <!-- End afterbuild -->
+    
+</Project>

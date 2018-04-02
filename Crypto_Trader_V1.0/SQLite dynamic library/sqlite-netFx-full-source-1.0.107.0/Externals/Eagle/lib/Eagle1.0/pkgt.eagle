@@ -1,0 +1,457 @@
+###############################################################################
+#
+# pkgt.eagle --
+#
+# Extensible Adaptable Generalized Logic Engine (Eagle)
+# Eagle Package Toolset Package File
+#
+# Copyright (c) 2007-2012 by Joe Mistachkin.  All rights reserved.
+#
+# See the file "license.terms" for information on usage and redistribution of
+# this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# RCS: @(#) $Id: $
+#
+###############################################################################
+
+#
+# NOTE: Use our own namespace here because even though we do not directly
+#       support namespaces ourselves, we do not want to pollute the global
+#       namespace if this script actually ends up being evaluated in Tcl.
+#
+namespace eval ::Eagle {
+  #
+  # NOTE: This procedure sets up the default values for all configuration
+  #       parameters used by this package.  If the force argument is non-zero,
+  #       any existing values will be overwritten and set back to their
+  #       default values.
+  #
+  proc setupPackageToolsetVars { force } {
+    #
+    # NOTE: Using the [getAuxiliaryBaseUri] procedure requires the update
+    #       package.
+    #
+    # NOTE: The base URI used to build the URIs for the Package Client
+    #       Toolset downloads.
+    #
+    variable baseUri; # DEFAULT: [getAuxiliaryBaseUri] -OR- https://urn.to/r
+
+    if {$force || ![info exists baseUri]} then {
+      if {[isEagle]} then {
+        package require Eagle.Update
+        set baseUri [getAuxiliaryBaseUri]
+      } else {
+        set baseUri https://urn.to/r
+      }
+    }
+
+    #
+    # NOTE: The URN, relative to the base URI, where the Package Client
+    #       Toolset may be downloaded.
+    #
+    variable packageToolsetUrn; # DEFAULT: pkg_client_only
+
+    if {$force || ![info exists packageToolsetUrn]} then {
+      set packageToolsetUrn pkg_client_only
+    }
+
+    #
+    # NOTE: The URI where the Package Client Toolset may be downloaded.
+    #
+    variable packageToolsetUri; # DEFAULT: ${baseUri}/${packageToolsetUrn}
+
+    if {$force || ![info exists packageToolsetUri]} then {
+      set packageToolsetUri {${baseUri}/${packageToolsetUrn}}
+    }
+
+    #
+    # NOTE: The URN, relative to the base URI, where the TclKit DLL for
+    #       a particular platform may be downloaded.
+    #
+    variable tclKitDllUrn; # DEFAULT: tclkit_dll_${platform}
+
+    if {$force || ![info exists tclKitDllUrn]} then {
+      set tclKitDllUrn {tclkit_dll_${platform}}
+    }
+
+    #
+    # NOTE: The URI where the TclKit DLL for a particular platform may
+    #       be downloaded.
+    #
+    variable tclKitDllUri; # DEFAULT: ${baseUri}/${urn}
+
+    if {$force || ![info exists tclKitDllUri]} then {
+      set tclKitDllUri {${baseUri}/${urn}}
+    }
+
+    #
+    # NOTE: The URN, relative to the base URI, where the Harpy and Badge
+    #       plugins for a particular build may be downloaded.
+    #
+    variable securityToolsetUrn; # DEFAULT: security_toolset_${platform}
+
+    if {$force || ![info exists securityToolsetUrn]} then {
+      set securityToolsetUrn {security_toolset_${platform}}
+    }
+
+    #
+    # NOTE: The URI where the Harpy and Badge plugins for a particular
+    #       build may be downloaded.
+    #
+    variable securityToolsetUri; # DEFAULT: ${baseUri}/${urn}
+
+    if {$force || ![info exists securityToolsetUri]} then {
+      set securityToolsetUri {${baseUri}/${urn}}
+    }
+
+    #
+    # NOTE: The URN, relative to the base URI, where license certificate
+    #       requests should be sent.
+    #
+    variable licenseUrn; # DEFAULT: get_license_01
+
+    if {$force || ![info exists licenseUrn]} then {
+      set licenseUrn get_license_01
+    }
+
+    #
+    # NOTE: The URI where license certificate requests should be sent.
+    #
+    variable licenseUri; # DEFAULT: ${baseUri}/${urn}
+
+    if {$force || ![info exists licenseUri]} then {
+      set licenseUri {${baseUri}/${urn}}
+    }
+  }
+
+  #
+  # NOTE: This procedure attempts to download and extract the Package Client
+  #       Toolset.  The optional channel argument is the output channel where
+  #       diagnostic information is sent.  The optional quiet argument should
+  #       be non-zero to prevent diagnostic information from being emitted.
+  #       This procedure may raise script errors.  The return value is the
+  #       full path to the directory that should be added to the auto-path.
+  #
+  proc downloadAndExtractPackageClientToolset {
+          {channel stdout} {quiet false} } {
+    setupPackageToolsetVars false
+
+    variable baseUri
+    variable packageToolsetUri
+    variable packageToolsetUrn
+
+    package require Eagle.Test
+    package require Eagle.Unzip
+
+    set extractRootDirectory [getTemporaryPath]
+
+    set directory [file join $extractRootDirectory [appendArgs \
+        ea-pt-di- [pid] - [string trim [clock seconds] -]]]
+
+    set uri [subst $packageToolsetUri]
+    set fileName [getTemporaryFileName]
+
+    if {[isEagle]} then {
+      uri download $uri $fileName
+    } else {
+      package require Eagle.Tools.Common
+
+      namespace import \
+          ::Eagle::Tools::Common::getFileViaHttp \
+          ::Eagle::Tools::Common::writeFile
+
+      set data [getFileViaHttp $uri 20 $channel $quiet -binary true]
+
+      writeFile $fileName $data
+    }
+
+    set extractDirectory [extractZipArchive $fileName $extractRootDirectory]
+    return [file join $extractDirectory pkgr_an_d client 1.0 neutral]
+  }
+
+  #
+  # NOTE: This procedure attempts to download and extract a native TclKit DLL
+  #       for the current platform.  The optional channel argument is the
+  #       output channel where diagnostic information is sent.  The optional
+  #       quiet argument should be non-zero to prevent diagnostic information
+  #       from being emitted.  This procedure may raise script errors.  The
+  #       return value is the full path to the native TclKit DLL file.
+  #
+  proc downloadAndExtractNativeTclKitDll {
+          {channel stdout} {quiet false} } {
+    setupPackageToolsetVars false
+
+    variable baseUri
+    variable tclKitDllUri
+    variable tclKitDllUrn
+
+    package require Eagle.Test
+    package require Eagle.Unzip
+
+    set extractRootDirectory [getTemporaryPath]
+
+    set directory [file join $extractRootDirectory [appendArgs \
+        ea-td-di- [pid] - [string trim [clock seconds] -]]]
+
+    set platform [machineToPlatform $::tcl_platform(machine) true]
+    set urn [subst $tclKitDllUrn]; set uri [subst $tclKitDllUri]
+    set fileName [getTemporaryFileName]
+
+    if {[isEagle]} then {
+      uri download $uri $fileName
+    } else {
+      package require Eagle.Tools.Common
+
+      namespace import \
+          ::Eagle::Tools::Common::getFileViaHttp \
+          ::Eagle::Tools::Common::writeFile
+
+      set data [getFileViaHttp $uri 20 $channel $quiet -binary true]
+
+      writeFile $fileName $data
+    }
+
+    set extractDirectory [extractZipArchive $fileName $extractRootDirectory]
+
+    return [lindex [glob -nocomplain \
+        [file join $extractDirectory lib *[info sharedlibextension]]] 0]
+  }
+
+  #
+  # NOTE: This procedure attempts to download and extract the Security Toolset,
+  #       which includes the Harpy and Badge plugins.  The optional channel
+  #       argument is the output channel where diagnostic information is sent.
+  #       The optional quiet argument should be non-zero to prevent diagnostic
+  #       information from being emitted.  This procedure may raise script
+  #       errors.  The return value is the full path to a directory that should
+  #       contain the "Harpy1.0" and "Badge1.0" plugin directories.
+  #
+  proc downloadAndExtractSecurityToolset {
+          {channel stdout} {quiet false} } {
+    setupPackageToolsetVars false
+
+    variable baseUri
+    variable securityToolsetUri
+    variable securityToolsetUrn
+
+    package require Eagle.Test
+    package require Eagle.Unzip
+
+    set extractRootDirectory [getTemporaryPath]
+
+    set directory [file join $extractRootDirectory [appendArgs \
+        ea-st-di- [pid] - [string trim [clock seconds] -]]]
+
+    if {[info exists ::eagle_platform(text)]} then {
+      set platform [string tolower $::eagle_platform(text)]
+    } else {
+      set platform [string tolower netFx20]; # TODO: Good default?
+    }
+
+    set dir [string map [list fx ""] $platform]; # netfx20 -> net20
+    set urn [subst $securityToolsetUrn]; set uri [subst $securityToolsetUri]
+    set fileName [getTemporaryFileName]
+
+    if {[isEagle]} then {
+      uri download $uri $fileName
+    } else {
+      package require Eagle.Tools.Common
+
+      namespace import \
+          ::Eagle::Tools::Common::getFileViaHttp \
+          ::Eagle::Tools::Common::writeFile
+
+      set data [getFileViaHttp $uri 20 $channel $quiet -binary true]
+
+      writeFile $fileName $data
+    }
+
+    set extractDirectory [extractZipArchive $fileName $extractRootDirectory]
+    return [file join $extractDirectory build $dir lib]
+  }
+
+  #
+  # NOTE: This procedure attempts to request a license certificate for Eagle,
+  #       which includes the Harpy and Badge plugins.  The optional channel
+  #       argument is the output channel where diagnostic information is sent.
+  #       The optional quiet argument should be non-zero to prevent diagnostic
+  #       information from being emitted.  This procedure may raise script
+  #       errors.  The return value is the fully qualified file name for the
+  #       resulting license certificate.
+  #
+  # WARNING: This procedure will send the short name and display name of the
+  #          currently logged on user to the Eagle license server as they are
+  #          required for a new license certificate to be issued.  Abuse of
+  #          this service may result in a permanent ban from the service and
+  #          revocation of any previously issued license certificates.
+  #
+  proc requestLicenseCertificate {
+          {channel stdout} {quiet false} } {
+    setupPackageToolsetVars false
+
+    variable baseUri
+    variable licenseUri
+    variable licenseUrn
+
+    package require Eagle.Test
+
+    set certificateRootDirectory [getTemporaryPath]
+
+    set processDirectoryPrefix [file join $certificateRootDirectory \
+        [appendArgs ea-lc-di- [pid] -]]
+
+    #
+    # NOTE: Issue a warning to the user if it appears there is already a
+    #       license certificate in a temporary directory that was created
+    #       by this process.  Hopefully, this should reduce the number of
+    #       duplicate requests.
+    #
+    set varName1 YES_PLEASE_FORCE_A_LICENSE_CERTIFICATE_REQUEST
+
+    if {![info exists ::env($varName1)] && [isWindows]} then {
+      set processFileNames [list]
+
+      foreach processDirectory [findDirectories \
+          [appendArgs $processDirectoryPrefix *]] {
+        eval lappend processFileNames [findFiles \
+            [file join $processDirectory *]]
+      }
+
+      if {[llength $processFileNames] > 0} then {
+        set warningCommand [list]
+
+        if {[isEagle]} then {
+          lappend warningCommand host result Error
+        } else {
+          lappend warningCommand puts stderr
+        }
+
+        set varName2 Master_Certificate
+
+        lappend warningCommand [appendArgs \
+            "One or more temporary license certificate files " \
+            "apparently belonging to this process were found.  " \
+            "If you wish to override this warning and force a " \
+            "new license certificate request to be submitted, " \
+            "set the \"" $varName1 "\" environment variable " \
+            "(to anything); however, please keep in mind that " \
+            "requesting too many license certificates and/or " \
+            "requesting license certificates too fast MAY be " \
+            "considered abusive behavior.  Upon success, the " \
+            "resulting temporary license certificate file " \
+            "SHOULD be saved to a secure location on the local " \
+            "file system, e.g. the home directory associated " \
+            "with the user submitting the license certificate " \
+            "request.  The fully qualified file name for the " \
+            "temporary license certificate MUST used as the " \
+            "value for the \"" $varName2 "\" environment " \
+            "variable; otherwise, it MAY NOT be found when one " \
+            "of its associated plugins attempts to load.\n"]
+
+        #
+        # NOTE: Emit our carefully worded license warning message.
+        #
+        eval $warningCommand
+
+        #
+        # NOTE: Return the first pre-existing license certificate file
+        #       name that was found.
+        #
+        return [lindex $processFileNames 0]
+      }
+    }
+
+    set directory [appendArgs \
+        $processDirectoryPrefix [string trim [clock seconds] -]]
+
+    set urn [subst $licenseUrn]; set uri [subst $licenseUri]
+
+    if {![isEagle] || [catch {
+      object invoke System.Security.Principal.WindowsIdentity \
+          GetCurrent.Name
+    } userName]} then {
+      #
+      # HACK: Fallback to using a value from the "tcl_platform" array.
+      #       For native Tcl, this is the only choice.  For Eagle, it
+      #       is used as a fallback.
+      #
+      if {[info exists ::tcl_platform(user)]} then {
+        set userName $::tcl_platform(user)
+      } else {
+        set userName "NO USER NAME"
+      }
+    }
+
+    if {![isEagle] || [catch {
+      object load System.DirectoryServices.AccountManagement
+
+      object invoke \
+          System.DirectoryServices.AccountManagement.UserPrincipal \
+          Current.DisplayName
+    } displayName]} then {
+      #
+      # HACK: Fallback to using a value from the "tcl_platform" array.
+      #       This value is not set by native Tcl or Eagle; therefore,
+      #       the user would have to set it manually prior to calling
+      #       this procedure.
+      #
+      if {[info exists ::tcl_platform(userDisplayName)]} then {
+        set displayName $::tcl_platform(userDisplayName)
+      } else {
+        set displayName "NO DISPLAY NAME"
+      }
+    }
+
+    #
+    # NOTE: Add the necessary query parameters to the license request
+    #       URI, making sure to properly escape their values.
+    #
+    if {[isEagle]} then {
+      append uri ?userName= [uri escape data $userName]
+      append uri &displayName= [uri escape data $displayName]
+    } else {
+      package require http 2.0
+
+      append uri ? [::http::formatQuery \
+          userName $userName displayName $displayName]
+    }
+
+    if {[isEagle]} then {
+      set data [uri download -inline $uri]
+    } else {
+      package require Eagle.Tools.Common
+
+      namespace import \
+          ::Eagle::Tools::Common::getFileViaHttp \
+          ::Eagle::Tools::Common::writeFile
+
+      set data [getFileViaHttp $uri 20 $channel $quiet -binary true]
+      package require Eagle.Auxiliary
+    }
+
+    if {[getDictionaryValue $data returnCode] ne "Ok"} then {
+      if {[string length $data] > 0} then {
+        error [appendArgs \
+            "request failed with error information: " $data]
+      } else {
+        error "request failed without providing error information"
+      }
+    }
+
+    set fileName [getTemporaryFileName]
+    writeFile $fileName [getDictionaryValue $data result]
+    set newFileName [file join $directory [file tail $fileName]]
+
+    file mkdir $directory; file copy $fileName $newFileName
+    file delete $fileName
+
+    return $newFileName
+  }
+
+  #
+  # NOTE: Provide the Eagle "package toolset" package to the interpreter.
+  #
+  package provide Eagle.Package.Toolset \
+    [expr {[isEagle] ? [info engine PatchLevel] : "1.0"}]
+}
+
