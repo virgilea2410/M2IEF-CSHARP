@@ -30,8 +30,8 @@ namespace Crypto_Trader_V1.ExchangesModels.My_Bittrex
         public My_Bittrex()
         {
             // Connection to bittrex
-            this.api_key = "705f33f99cab480d977177e06ddce266";
-            this.api_secret = "392f505579ff436d993672b9f7a21682";
+            this.api_key = "<your_api_key>";
+            this.api_secret = "<your_api_secret>";
             this.my_bittrex = new Bittrex(this.api_key, this.api_secret);
             this.my_balances = new Dictionary<string, double>();
             this.portfolio_size = this.my_balances.Count;
