@@ -43,8 +43,8 @@ namespace Crypto_Trader_V1.ExchangesModels.My_Bitfinex
         /// </summary>
         public My_Bitfinex()
         {
-            this.key = "XdUb4vbjpJUx1KLFqGqmItuN9YG6Bl8eRiiDLOHzOP9";
-            this.secret = "H9vmIrk2it9TqNidtZK0EyvI1Sy4iS3CfhOzpBSn12P";
+            this.key = "<your_api_key>";
+            this.secret = "<your_api_secret>";
 
             this.cSecret = this.secret.ToCharArray();
             this.bSecret = System.Text.Encoding.UTF8.GetBytes(this.cSecret);
