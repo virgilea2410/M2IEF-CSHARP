@@ -43,9 +43,9 @@ namespace Crypto_Trader_V1.ExchangesModels.My_CexIO
 
             this.bodyRequest = new Dictionary<string, string>();
 
-            this.username = "up104265213";
-            this.apiKey = "cNuZVGjgPhO1fG95UmiHHDHk8";
-            this.apiSecret = "lpNEh8PynXzII0CaSaRYBgGU";
+            this.username = "<your_username>";
+            this.apiKey = "<your_api_key>";
+            this.apiSecret = "<your_api_secret>";
 
             this.hasher = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes(this.apiSecret));
         }
