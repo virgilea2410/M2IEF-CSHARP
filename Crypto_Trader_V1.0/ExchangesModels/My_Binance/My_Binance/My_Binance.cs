@@ -33,8 +33,8 @@ namespace Crypto_Trader_V1.ExchangesModels.My_Binance
         /// </summary>
         public My_Binance()
         {
-            this.api_key = "I21IekZmWENC9dW3JyUxK0WoK0bimtkqR4o6xawjPbh47SG9dQ1Isq1058mECtqf";
-            this.api_secret = "0NLDwVvf3kirZcHnjVKzAuwoXgFtBHwyV83avAYlR8F30fDdcKZTyAarZkerUHrn";
+            this.api_key = "<your_api_key>";
+            this.api_secret = "<your_api_key>";
 
             this.api = "https://api.binance.com/";
 
