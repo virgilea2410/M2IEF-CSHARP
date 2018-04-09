@@ -30,8 +30,8 @@ namespace Crypto_Trader_V1.ExchangesModels.My_Coinbase
         /// </summary>
         public My_Coinbase()
         {
-            this.apiKey = "Jgr8yrdDUpUn8llf";
-            this.apiSecret = "EDl4b17qKlDKJC5xjIjUnUVwJhtxxvhV";
+            this.apiKey = "<your_api_key>";
+            this.apiSecret = "<your_api_secret>";
             this.coinbase = new Coinbase.CoinbaseApi(apiKey, apiSecret, false, null, true);
         }
 
